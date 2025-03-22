@@ -66,10 +66,11 @@ public class JokeAPI : MonoBehaviour
 
             // Create and send the web request
             using UnityWebRequest request = UnityWebRequest.Get(API_URL);
-            Debug.Log(request.result);
-            await request.SendWebRequest();
-            Debug.Log(request.result);
+            var operation = request.SendWebRequest();
 
+            // Wait for the request to complete
+            while (!operation.isDone)
+                await Task.Yield();
 
             // Check if the request was successful
             if (request.result != UnityWebRequest.Result.Success)
@@ -106,6 +107,4 @@ public class JokeAPI : MonoBehaviour
     {
         _ = FetchRandomJoke();
     }
-
-   
 }

@@ -18,12 +18,6 @@ public class GeminiAPI : MonoBehaviour
         PlainText, // Plain text response
         Json       // JSON formatted response
     }
-    public enum LevelOfTrust
-    {
-        Low,
-        Medium,
-        High
-    }
 
     // Base URL for the Gemini API
     private const string BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
@@ -40,7 +34,6 @@ public class GeminiAPI : MonoBehaviour
     [SerializeField] private ResponseMimeType _responseMimeType = ResponseMimeType.Json; // Expected response type
     [SerializeField] private bool _enableChatHistory = true; // Flag to enable chat history
     [SerializeField] public List<Content> _chatHistory = new List<Content>(); // List to store chat history
-    private LevelOfTrust _levelOfTrust = LevelOfTrust.Low;
     #endregion
 
     #region Chat History Management
@@ -200,12 +193,16 @@ public class GeminiAPI : MonoBehaviour
         string jsonData = JsonUtility.ToJson(requestBody); // Convert request body to JSON
         Debug.Log($"Sending request: {jsonData}"); // Log the request
 
-        using UnityWebRequest request = new UnityWebRequest(url, "POST"); // Create a new web request
-        byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonData); // Convert JSON to byte array
-        request.uploadHandler = new UploadHandlerRaw(bodyRaw); // Set the upload handler
-        request.downloadHandler = new DownloadHandlerBuffer(); // Set the download handler
-        request.SetRequestHeader("Content-Type", "application/json"); // Set content type header
 
+              UnityWebRequest request = UnityWebRequest.Post(url, jsonData, "application/json");
+
+        // Detailed steps:
+        // using UnityWebRequest request = new UnityWebRequest(url, "POST"); // Create a new web request
+        // byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonData); // Convert JSON to byte array
+        // request.uploadHandler = new UploadHandlerRaw(bodyRaw); // Set the upload handler
+        // request.downloadHandler = new DownloadHandlerBuffer(); // Set the download handler
+        // request.SetRequestHeader("Content-Type", "application/json"); // Set content type header
+        
         try
         {
             await request.SendWebRequest(); // Send the request asynchronously
@@ -220,20 +217,19 @@ public class GeminiAPI : MonoBehaviour
             // Parse the response from the API
             var responseJObject = JObject.Parse(request.downloadHandler.text);
             string aiResponse = responseJObject["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.ToString(); // Extract AI response
-
-            var jsonReponse = JObject.Parse(aiResponse);
-            string jsonAiResponse = jsonReponse["response"].ToString();
-
-            CheckLevelOfTrust(jsonReponse["level_of_trust"].ToString());
-            DebugTest();
-
             // If chat history is enabled and response is valid, add to chat history
-            if (_enableChatHistory && !string.IsNullOrEmpty(jsonAiResponse))
+
+            JObject jObjectResponse = JObject.Parse(aiResponse);
+            string response = jObjectResponse["response"].ToString();
+            string emotion = jObjectResponse["emotion"].ToString().ToLower();
+            ProcessEmotion(emotion);
+
+            if (_enableChatHistory && !string.IsNullOrEmpty(aiResponse))
             {
-                _chatHistory.Add(CreateMessageObject("model", jsonAiResponse)); // Add AI response to history
+                _chatHistory.Add(CreateMessageObject("model", aiResponse)); // Add AI response to history
             }
 
-            return jsonAiResponse; // Return the AI response
+            return response; // Return the AI response
         }
         catch (Exception e)
         {
@@ -241,42 +237,22 @@ public class GeminiAPI : MonoBehaviour
             return null; // Return null on exception
         }
     }
-    #endregion
 
-    #region Task
-    private void CheckLevelOfTrust(string levelOfTrust)
+    private void ProcessEmotion(string emotion)
     {
-        if (levelOfTrust == "Low")
+        switch (emotion)
         {
-            _levelOfTrust = LevelOfTrust.Low;
-        }
-        else if (levelOfTrust == "Medium")
-        {
-            _levelOfTrust = LevelOfTrust.Medium;
-        }
-        else if (levelOfTrust == "High")
-        {
-            _levelOfTrust = LevelOfTrust.High;
-        }
-    }
-    private void DebugTest()
-    {
-        switch (_levelOfTrust)
-        {
-            case LevelOfTrust.Low:
-                Debug.Log("Low");
+            case "happy":
+                Debug.Log("Happy");
                 break;
-
-            case LevelOfTrust.Medium:
-                Debug.Log("Medium");
+            case "sad":
+                Debug.Log("Sad");
                 break;
-
-            case LevelOfTrust.High:
-                Debug.Log("High");
+            case "angry":
+                Debug.Log("Angry");
                 break;
-
             default:
-                Debug.Log("Unknown level of trust");
+                Debug.Log("Unknown emotion");
                 break;
         }
     }

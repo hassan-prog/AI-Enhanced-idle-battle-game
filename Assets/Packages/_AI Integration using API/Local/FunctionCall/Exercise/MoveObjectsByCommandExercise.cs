@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Reflection;
 using LLMUnity;
-using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,34 +25,11 @@ public class MoveObjectsByCommandExercise : MonoBehaviour
         return functionNames.ToArray();
     }
 
-    string ConstructColorPrompt(string message)
-    {
-        string prompt = "Based on the given input, select the best matching color.\n\n";
-        prompt += "Input: " + message + "\n\n";
-        prompt += "Choices for Color:\n";
-
-        foreach (string color in GetFunctionNames<ColorFunctions>())
-            prompt += $"- {color}\n";
-
-        prompt += "\nAnswer directly in the format:\n<your choice>";
-
-        return prompt;
-    }
-
     string ConstructDirectionPrompt(string message)
     {
-        string prompt = "Based on the given input, select the best matching direction.\n\n";
-        prompt += "Input: " + message + "\n\n";
-        prompt += "Choices for Direction:\n";
-
-        foreach (string direction in GetFunctionNames<DirectionFunctions>())
-            prompt += $"- {direction}\n";
-
-        prompt += "\nAnswer directly in the format:\n<your choice>";
-
-        return prompt;
+        // construct the prompt for the AI to understand direction commands
+        return "";
     }
-
 
     async void onInputFieldSubmit(string message)
     {
@@ -78,22 +54,6 @@ public class MoveObjectsByCommandExercise : MonoBehaviour
         //       Vector3 direction = (Vector3)typeof(DirectionFunctions).GetMethod(MethodName).Invoke(null, null);
         // 4. Move the correct square in the specified direction
         // 5. Re-enable the input field
-
-        playerText.interactable = false;
-        string directionPrompt = await llmCharacter.Chat(ConstructDirectionPrompt(message));
-        string colorPrompt = await llmCharacter.Chat(ConstructColorPrompt(message));
-
-        Vector3 direction = (Vector3)typeof(DirectionFunctions).GetMethod(directionPrompt).Invoke(null, null);
-        Color color = (Color)typeof(ColorFunctions).GetMethod(colorPrompt).Invoke(null, null);
-
-        RectTransform square = GetObjectByColor(color);
-        if (square != null)
-        {
-            square.anchoredPosition += new Vector2(direction.x, direction.y) * 200;
-        }
-
-        playerText.interactable = true;
-        playerText.Select();
     }
 
     private RectTransform GetObjectByColor(Color color)

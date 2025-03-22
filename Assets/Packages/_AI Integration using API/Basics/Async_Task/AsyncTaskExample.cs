@@ -34,6 +34,7 @@ public class AsyncTaskExample : MonoBehaviour
         _statusText.text = "Starting Coroutine...";
         _isRunning = true;
         StartCoroutine(SimpleCoroutine());
+        Debug.Log("Coroutine started");
     }
 
     private async void OnButtonClick_StartTaskExample()
@@ -43,7 +44,8 @@ public class AsyncTaskExample : MonoBehaviour
 
         _statusText.text = "Starting Task...";
         _isRunning = true;
-        await SimpleTask();
+        int result = await SimpleTask();
+        Debug.Log("Task completed with result: " + result);
     }
 
     // Coroutine Example: Uses Unity's built-in system for handling async operations
@@ -54,10 +56,10 @@ public class AsyncTaskExample : MonoBehaviour
     {
         yield return new WaitForSeconds(1f);
         _statusText.text = "Coroutine: Started";
-        
+
         yield return new WaitForSeconds(2f);
         _statusText.text = "Coroutine: Middle";
-        
+
         yield return new WaitForSeconds(3f);
         _statusText.text = "Coroutine: Finished";
         _isRunning = false;
@@ -68,17 +70,19 @@ public class AsyncTaskExample : MonoBehaviour
     // - Can run on background threads (careful with Unity API calls!)
     // - Better error handling
     // - Can be canceled with CancellationToken
-    private async Task SimpleTask()
-    {
+    private async Task<int> SimpleTask()
+    { int value = 0;
         await Task.Delay(1000); // 1 second delay
         _statusText.text = "Task: Started";
-        
+        value++;
         await Task.Delay(2000); // 2 second delay
         _statusText.text = "Task: Middle";
-        
+        value++;
         await Task.Delay(3000); // 3 second delay
         _statusText.text = "Task: Finished";
         _isRunning = false;
+
+        return value;
     }
 
     // Clean up event listeners when the object is destroyed

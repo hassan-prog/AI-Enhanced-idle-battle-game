@@ -64,13 +64,6 @@ namespace LLMUnitySamples
             return prompt;
         }
 
-        //// This is the prompt sent to the AI
-        // Which of the following choices matches best the input?
-        // Input: bla bla bla
-        // Choices:
-        // func01 - func02 - func03
-        // Answer directly with the choice
-
         string CallFunction(string functionName)
         {
             return (string) typeof(Functions).GetMethod(functionName).Invoke(null, null);

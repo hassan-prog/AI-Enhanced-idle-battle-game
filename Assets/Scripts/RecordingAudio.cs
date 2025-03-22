@@ -4,18 +4,22 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using LLMUnity;
+using BattleGame.Scripts;
 
 public class RecordingAudio : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI textGenResponse;
     [SerializeField] private Button startRecording;
     [SerializeField] private Button stopRecording;
+    [SerializeField] private PlayerCommands playerCommands;
 
     private AudioClip _clip;
     private bool _isRecording;
     private APIManager _apiManager;
 
     [HideInInspector] public byte[] bytes;
+    [HideInInspector] public string RecordedText;
+
 
     //[HideInInspector] public string audioFilePath = Application.dataPath + "/Audio/RecordedAudio.wav";
 
@@ -55,7 +59,7 @@ public class RecordingAudio : MonoBehaviour
         startRecording.interactable = false;
     }
 
-    private async void StopRecording()
+    public async void StopRecording()
     {
         // returns the samples with audio, avoiding empty samples
         if (_isRecording)
@@ -67,7 +71,6 @@ public class RecordingAudio : MonoBehaviour
             if (position <= 0)
             {
                 Debug.LogError("No audio recorded!");
-                return;
             }
 
             // calculates the total number of audio samples recorded
@@ -80,21 +83,10 @@ public class RecordingAudio : MonoBehaviour
             // Encode to WAV
             bytes = EncodeAsWAV(samples, _clip.frequency, _clip.channels);
 
-            string speechToText_Response = await _apiManager.SendAudioTo_SpeechToText(bytes);
-            string textGen_Response = await _apiManager.SendAudioTo_TextGen(speechToText_Response);
-            if (textGen_Response != null)
-            {
-                textGenResponse.text = textGen_Response;
-            }
-            //stopRecording.interactable = true;
+            string speechToText_Response = (await _apiManager.SendAudioTo_SpeechToText(bytes)).Trim();
+            playerCommands.ProcessCommand(speechToText_Response);
+            Debug.Log(speechToText_Response);
             startRecording.interactable = true;
-            _isRecording = false;
-            // Save WAV file
-            //await SaveWavFile(audioFilePath, _bytes);
-        }
-        else
-        {
-            textGenResponse.text = "No audio recorded!";
         }
     }
     #endregion

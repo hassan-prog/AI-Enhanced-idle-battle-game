@@ -8,7 +8,6 @@ using TMPro;
 // This class demonstrates different ways to work with JSON data in Unity
 public class JSONBasics : MonoBehaviour
 { 
-     TextMeshProUGUI data;
     // UI Text component to display our JSON data
     [SerializeField] private Text _jsonViewText;
     
@@ -26,7 +25,7 @@ public class JSONBasics : MonoBehaviour
     public void DisplayJsonValue()
     {
         JObject json = JObject.Parse(_jsonFile.ToString());
-        string firstName = json["user"]["firstName"].ToString();
+        string firstName = json["recentActivities"]["type"].ToString();
         _jsonViewText.text = firstName;  
     }
 
@@ -49,15 +48,14 @@ public class JSONBasics : MonoBehaviour
     }
 }
 
-// This class represents a data structure that we'll convert to/from JSON
 [Serializable]
 public class UserData
 {
     // SerializeField allows private fields to be serialized
-    [SerializeField] private string firstName = "defaultFirstName";
+    [SerializeField] private string firstName = "FirstName";
     
     // This private field won't be included in JSON because it lacks SerializeField
-    private string lastName = "defaultLastName";
+    private string lastName = "LastName";
     
     // Public fields are automatically serialized
     public string email = "defaultEmail";
